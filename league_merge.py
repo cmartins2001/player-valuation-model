@@ -8,9 +8,9 @@ import pandas as pd
 import os
 
 # Global variables:
-dir = 'C:/Users/cmart/OneDrive - Bentley University/Research/Player Valuation Model'
-eng_dir = 'C:/Users/cmart/OneDrive - Bentley University/Research/Player Valuation Model/ENG-Premier League'
-export_dir = 'C:/Users/cmart/OneDrive - Bentley University/Research/Player Valuation Model/Merged Data'
+repo_dir = os.path.dirname(os.path.abspath(__file__))  # Directory of the script
+fbref_data_dir = os.path.join(repo_dir, "fbref-data")   # Path to the fbref-data folder
+export_dir = os.path.join(repo_dir, "Merged Data")      # Path to the export folder
 season_ids = ['1718', '1819', '1920', '2021', '2122', '2223']
 league_ids = ['ENG-Premier League', 'ESP-La Liga', 'FRA-Ligue 1', 'GER-Bundesliga', 'ITA-Serie A']
 index_col_names = ['league', 'season', 'team']
@@ -59,7 +59,7 @@ for league in league_ids:
 
     for season in season_ids:
         # Dynamic file path:
-        file_path = f"C:/Users/cmart/OneDrive - Bentley University/Research/Player Valuation Model/{league}/{league}_{season}_full_join.xlsx"
+        file_path = os.path.join(fbref_data_dir, league, f"{league}_{season}_full_join.xlsx")
 
         # Import and clean the data:
         df = import_and_clean(file_path)
