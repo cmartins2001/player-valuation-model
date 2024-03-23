@@ -61,6 +61,7 @@ def key_stats_table(df, stat_dict, pos, season):
     return (df[df['position'].str.contains(pos) & (df['season'] == season)]
               .groupby('team')
               .aggregate(stat_dict)
+              .round(2) # Round averages to two decimal places
               .reset_index()
               )
 
