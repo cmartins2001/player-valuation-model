@@ -16,6 +16,7 @@ repo_dir = os.getcwd()  # Directory of the script
 merged_data_dir = os.path.join(repo_dir, "Merged Data")   # Path to the Merged Data folder
 export_dir = os.path.join(repo_dir, "Summary Tables")     # Path to the Summary Data folder
 league_ids = ['ENG-Premier League', 'ESP-La Liga', 'FRA-Ligue 1', 'GER-Bundesliga', 'ITA-Serie A'] # For league-level iteration
+season_ids = ['1718', '1819', '1920', '2021', '2122', '2223'] # For season-level iteration
 
 # Create a dictionary of key statistics and their respective aggregation methods:
 test_stat_dict = {'age': 'mean',
