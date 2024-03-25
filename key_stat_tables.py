@@ -1,6 +1,6 @@
 '''
 Python script for creating league-level statistics tables.
-Last Updated: 3/23/2024
+Last Updated: 3/25/2024
 '''
 
 # Import libraries:
@@ -25,6 +25,45 @@ test_stat_dict = {'age': 'mean',
                   'SCA90' : 'mean', # shot-creating actions per 90 
                   'Tkl%': 'mean',   # successful tackle %
                   'Succ%': 'mean'   # successful take-on %
+                  }
+
+# Create a statistics dictionary for the DEF category:
+def_stat_dict = {'Tkl': 'mean',        # total tackles
+                  'TklW': 'mean',      # total tackles won
+                  'Def 3rd': 'mean',   # total tackles in def. 3rd
+                  'Mid 3rd': 'mean',   # total tackles in mid. 3rd
+                  'Blocks.1' : 'mean', # total blocks
+                  'Sh.3%': 'mean',     # total shots blocked
+                  }
+
+# Create a statistics dictionary for the MID category:
+mid_stat_dict = {'Gls.1': 'mean',       # goals/90
+                  'Ast.1': 'mean',      # assists/90
+                  'G-PK.1': 'mean',     # npg per 90
+                  'G+A-PK.1': 'mean',   # npg+a per 90
+                  'npxG+xAG.1' : 'mean',
+                  'SoT%': 'mean',
+                  'Cmp%': 'mean',       # overall pass completion
+                  'Cmp%.1': 'mean',     # mid-range pass completion
+                  'SCA90': 'mean',
+                  'GCA90': 'mean',
+                  'Tkl%': 'mean',       # successful tackle rate
+                  'PrgC.1': 'mean',     # total progressive carries
+                  }
+
+# Create a statistics dictionary for the FW category:
+fw_stat_dict = {'Gls.1': 'mean',        # goals/90
+                  'Ast.1': 'mean',      # assists/90
+                  'G-PK.1': 'mean',     # npg per 90
+                  'G+A-PK.1': 'mean',   # npg+a per 90
+                  'npxG+xAG.1' : 'mean', # per 90
+                  'npxG.1': 'mean',     # per 90
+                  'G/Sh': 'mean',       # overall pass completion
+                  'G/SoT': 'mean',      # mid-range pass completion
+                  'np:G-xG': 'mean',    # per 90
+                  'A-xAG': 'mean',      # total A - xAG 
+                  'Crs': 'mean',        # total crosses
+                  'GCA90': 'mean',
                   }
 
 
