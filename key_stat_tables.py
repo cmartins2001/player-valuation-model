@@ -1,6 +1,6 @@
 '''
 Python script for creating league-level statistics tables.
-Last Updated: 3/25/2024
+Last Updated: 3/27/2024
 '''
 
 # Import libraries:
@@ -123,7 +123,7 @@ league_df_list = [import_merged_data(os.path.join(merged_data_dir, f"{league}_fu
 cleaned_league_df_list = [remove_unnamed_cols((league_df.copy(deep=True))).dropna(subset=['position']) for league_df in league_df_list]
 
 # Create a nested for loop for each position:
-positions = ['DEF', 'MF', 'FW']
+positions = ['DF', 'MF', 'FW']
 seasons = [1718, 1819, 1920, 2021, 2122, 2223]
 stat_dicts = [def_stat_dict, mid_stat_dict, fw_stat_dict]
 
