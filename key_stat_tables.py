@@ -116,22 +116,11 @@ def key_stats_table_all_seasons(df, stat_dict, pos):
               )
 
 
-# Position and season variables for filtering:
-# filter_pos = 'MF'
-# filter_season = 2223
-
 # Make a list of imported dataframes:
 league_df_list = [import_merged_data(os.path.join(merged_data_dir, f"{league}_full_merge.xlsx")) for league in league_ids]
 
 # Make a list of clean, copied dataframes:
 cleaned_league_df_list = [remove_unnamed_cols((league_df.copy(deep=True))).dropna(subset=['position']) for league_df in league_df_list]
-
-# Create a midfielder summary statistics table for each league in the 22/23 season:
-# mid_2223_stat_df_list = [key_stats_table(clean_league_df, test_stat_dict, filter_pos, filter_season) for clean_league_df in cleaned_league_df_list]
-
-# Send the summary tables to Excel:
-# for table, league in zip(mid_2223_stat_df_list, league_ids):
-#     make_xl(export_dir, table, file_name=f"{league}_{filter_pos}_{filter_season}_keystats")
 
 # Create a nested for loop for each position:
 positions = ['DEF', 'MF', 'FW']
