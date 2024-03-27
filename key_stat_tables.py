@@ -106,6 +106,16 @@ def key_stats_table(df, stat_dict, pos, season):
               )
 
 
+# Function that generates a dataframe with team-level statistics filtered by position and season:
+def key_stats_table_all_seasons(df, stat_dict, pos):
+    return (df[df['position'].str.contains(pos)]
+              .groupby(['season', 'team'])
+              .aggregate(stat_dict)
+              .round(2) # Round averages to two decimal places
+              .reset_index()
+              )
+
+
 # Position and season variables for filtering:
 filter_pos = 'MF'
 filter_season = 2223
@@ -117,8 +127,25 @@ league_df_list = [import_merged_data(os.path.join(merged_data_dir, f"{league}_fu
 cleaned_league_df_list = [remove_unnamed_cols((league_df.copy(deep=True))).dropna(subset=['position']) for league_df in league_df_list]
 
 # Create a midfielder summary statistics table for each league in the 22/23 season:
-mid_2223_stat_df_list = [key_stats_table(clean_league_df, test_stat_dict, filter_pos, filter_season) for clean_league_df in cleaned_league_df_list]
+# mid_2223_stat_df_list = [key_stats_table(clean_league_df, test_stat_dict, filter_pos, filter_season) for clean_league_df in cleaned_league_df_list]
 
 # Send the summary tables to Excel:
-for table, league in zip(mid_2223_stat_df_list, league_ids):
-    make_xl(export_dir, table, file_name=f"{league}_{filter_pos}_{filter_season}_keystats")
+# for table, league in zip(mid_2223_stat_df_list, league_ids):
+#     make_xl(export_dir, table, file_name=f"{league}_{filter_pos}_{filter_season}_keystats")
+
+# Create a nested for loop for each position:
+positions = ['DEF', 'MF', 'FW']
+seasons = [1718, 1819, 1920, 2021, 2122, 2223]
+stat_dicts = [def_stat_dict, mid_stat_dict, fw_stat_dict]
+
+for pos, stat_dict in zip(positions, stat_dicts):
+
+    # Create a list of summary statistics table for each league for the position in the loop:
+    stat_df_list = [key_stats_table_all_seasons(clean_league_df, stat_dict, pos) for clean_league_df in cleaned_league_df_list]
+
+    # Send the summary tables to their respective directories:
+    for df, league in zip(stat_df_list, league_ids):
+        pos_export_dir = os.path.join(repo_dir, pos)
+        make_xl(pos_export_dir, df, file_name=f"{league}_{pos}_keystats")
+
+
