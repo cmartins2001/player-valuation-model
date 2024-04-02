@@ -7,6 +7,7 @@ import pandas as pd
 import os
 
 repo_dir = os.path.dirname(os.path.abspath(__file__))  # Directory of the script
+transferMKT_dir = os.path.join(repo_dir, 'transferMKT-data')
 
 
 # Function that creates a CSV from a pandas df:
@@ -19,4 +20,4 @@ def make_csv(df, dir, file_name):
 df = pd.read_csv('https://query.data.world/s/bxh6i5g3kll34aqabzszjbecgdzabm?dws=00000')
 
 # Send the dataframe to the Github repo as a CSV:
-make_csv(df, repo_dir, file_name="transferMKT_player_valuation")
+make_csv(df, transferMKT_dir, file_name="transferMKT_player_valuation")
