@@ -26,4 +26,10 @@ player_val_df = pd.read_csv('https://query.data.world/s/bxh6i5g3kll34aqabzszjbec
 game_event_df = pd.read_csv('https://query.data.world/s/k2dsg5zuat7n2xiuhiwkv44kvzlhs3?dws=00000')
 
 # Send the dataframe to the Github repo as a CSV:
-make_csv(game_event_df, transferMKT_dir, file_name="transferMKT_game_event")
+# make_csv(game_event_df, transferMKT_dir, file_name="transferMKT_game_event")
+
+# Create a pandas df for the appearances file:
+appearances_df = pd.read_csv('https://query.data.world/s/2t4a5mgcrt7xb32ifpci2wijahs7fq?dws=00000')
+
+# Send the dataframe to the Github repo as a CSV:
+make_csv(appearances_df, transferMKT_dir, file_name="transferMKT_appearances")
