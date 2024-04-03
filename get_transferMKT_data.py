@@ -17,7 +17,13 @@ def make_csv(df, dir, file_name):
 
 
 # Create a pandas dataframe:
-df = pd.read_csv('https://query.data.world/s/bxh6i5g3kll34aqabzszjbecgdzabm?dws=00000')
+player_val_df = pd.read_csv('https://query.data.world/s/bxh6i5g3kll34aqabzszjbecgdzabm?dws=00000')
 
 # Send the dataframe to the Github repo as a CSV:
-make_csv(df, transferMKT_dir, file_name="transferMKT_player_valuation")
+# make_csv(player_val_df, transferMKT_dir, file_name="transferMKT_player_valuation")
+
+# Create a pandas dataframe for game event data:
+game_event_df = pd.read_csv('https://query.data.world/s/k2dsg5zuat7n2xiuhiwkv44kvzlhs3?dws=00000')
+
+# Send the dataframe to the Github repo as a CSV:
+make_csv(game_event_df, transferMKT_dir, file_name="transferMKT_game_event")
