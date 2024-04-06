@@ -15,14 +15,16 @@ dw_top5_leagues = [ 'GB1', 'ES1', 'FR1', 'GR1', 'IT1'] # For top-5 league filter
 fbref_top5_leagues = ['ENG-Premier League', 'ESP-La Liga', 'FRA-Ligue 1', 'GER-Bundesliga', 'ITA-Serie A'] # For iteration zipping
 
 # DW column dictionaries for renaming:
-appearances_dict = {'competition_id' : 'league_id', 'player_club_id' : 'team_id'}
-player_val_dict = {'current_club_id' : 'team_id',             'player_club_domestic_competition_id' : 'league_id'}
-clubs_dict = {'club_id' : 'team_id','name' : 'team', 'domestic_competition_id' : 'league_id'}
+appearances_col_dict = {'competition_id' : 'league_id', 'player_club_id' : 'team_id'}
+player_val_col_dict = {'current_club_id' : 'team_id', 'player_club_domestic_competition_id' : 'league_id'}
+clubs_col_dict = {'club_id' : 'team_id','name' : 'team', 'domestic_competition_id' : 'league_id'}
+# List of these dictionaries:
+col_rename_dicts = [appearances_col_dict, player_val_col_dict, clubs_col_dict]
 
 # DW column lists for slicing:
-appearances_cols = ['player_id', 'player_club_id', 'date', 'player_name', 'competition_id']
-player_val_cols = ['player_id', 'date', 'current_club_id', 'market_value_in_eur', 'player_club_domestic_competition_id']
-clubs_cols = ['club_id', 'name', 'domestic_competition_id']
+appearances_cols = ['player_id', 'team_id', 'date', 'player_name', 'league_id']
+player_val_cols = ['player_id', 'date', 'team_id', 'market_value_in_eur', 'league_id']
+clubs_cols = ['team_id', 'team', 'league_id']
 # List of these lists:
 dw_cols_lists = [appearances_cols, player_val_cols, clubs_cols]
 
@@ -54,10 +56,17 @@ def calculate_season(date):
 
 # Function that standardizes column names for DW dataframes:
 def standardize_col_names(df, col_dict):
-    return (df
-            .rename(columns=col_dict)
-            .sort_values('date', ascending=True)
-            )
+
+    # Check if there is a date column in the DF:
+    if 'date' in df.columns:
+        return (df
+                .rename(columns=col_dict)
+                .sort_values('date', ascending=True)
+                )
+    else:
+        return (df.
+                rename(columns=col_dict)
+                )
 
 
 # Function that filters DW dataframes by date/league:
@@ -99,7 +108,7 @@ def add_season_column(df):
 def aggregate_data_world(df, agg_dict):
     return (df
             .groupby(['season', 'team_id', 'player_name'])
-            .agg({agg_dict})
+            .agg(agg_dict)
             .reset_index()
             )
 
@@ -160,7 +169,7 @@ def main():
     dw_raw_dfs = [appearances_df, player_val_df, clubs_df]
 
     # Standardize col names:
-    standardizes_dfs = [standardize_col_names(df) for df in dw_raw_dfs]
+    standardized_dfs = [standardize_col_names(df, col_dict) for df, col_dict in zip(dw_raw_dfs, col_rename_dicts)]
 
     # Filter by league and date:
     for dw_league, fbref_league in zip(dw_top5_leagues, fbref_top5_leagues):
@@ -169,23 +178,25 @@ def main():
         league_dw_df_list = []
 
         # Conduct cleaning and add the 3 DFs to the empty list:
-        for df, cols_list, agg_dict in zip(standardizes_dfs, dw_cols_lists, aggregation_dicts):
+        for index, (df, cols_list, agg_dict) in enumerate(zip(standardized_dfs, dw_cols_lists, aggregation_dicts)):
             
             # Filter the standardized DF:
             filtered_df = filter_data_world(df, dw_league)
+            print(f'\n Finished filtering the dataframe for DW league id: {dw_league}. It had the cols_list of {cols_list} \n')
 
             # Slice the filtered DF by necessary columns only:
             sliced_df = slice_data_world(filtered_df, cols_list)
+            print(f'\n Finished slicing the dataframe for DW league id: {dw_league}. It had the cols_list of {cols_list} \n')
 
             # Add the season column to the sliced DF:
             sliced_df = add_season_column(sliced_df)
 
             # Aggregate the sliced DF -- first 2 DW DFs only:
-            if df in standardizes_dfs[0:1]:
-                aggregate_data_world(df=df, agg_dict=agg_dict)
-                league_dw_df_list.append(df)
+            if index < 2:
+                aggregate_data_world(df=sliced_df, agg_dict=agg_dict)
+                league_dw_df_list.append(sliced_df)
             else:
-                league_dw_df_list.append(df)
+                league_dw_df_list.append(sliced_df)
 
         # Merge the 3 cleaned, league-level DW DFs:
         dw_league_merge = merge_dw_dfs(league_dw_df_list[0], league_dw_df_list[1], league_dw_df_list[2])
