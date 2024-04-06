@@ -200,3 +200,5 @@ def main():
         make_csv(fbref_dw_league_merge, export_dir, file_name=f"{fbref_league}_fbref_dw_merge")
 
 
+if __name__ == '__main__':
+    main()
