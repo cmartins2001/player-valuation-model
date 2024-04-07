@@ -105,9 +105,9 @@ def add_season_column(df):
 
 
 # Function that aggregates DW dataframes to the season-team-player-level:
-def aggregate_data_world(df, agg_dict):
+def aggregate_data_world(df, agg_dict, groupby_cols):
     return (df
-            .groupby(['season', 'team_id', 'player_name'])
+            .groupby(groupby_cols)
             .agg(agg_dict)
             .reset_index()
             )
@@ -134,7 +134,7 @@ def merge_dw_dfs(df1, df2, df3):
 def import_and_standardize_FBref(file_name):
     
     # Import to pandas from the merged data directory:
-    fbref_df = pd.read_excel(os.path.join(repo_dir, f"Merged Data/{file_name}"))
+    fbref_df = pd.read_excel(os.path.join(repo_dir, f"Merged Data\{file_name}.xlsx"))
 
     # Rename the player column to 'player_name' for merging:
     return (fbref_df.rename(columns={'player' : 'player_name'}))
@@ -182,18 +182,26 @@ def main():
             
             # Filter the standardized DF:
             filtered_df = filter_data_world(df, dw_league)
-            print(f'\n Finished filtering the dataframe for DW league id: {dw_league}. It had the cols_list of {cols_list} \n')
 
             # Slice the filtered DF by necessary columns only:
             sliced_df = slice_data_world(filtered_df, cols_list)
-            print(f'\n Finished slicing the dataframe for DW league id: {dw_league}. It had the cols_list of {cols_list} \n')
-
-            # Add the season column to the sliced DF:
-            sliced_df = add_season_column(sliced_df)
 
             # Aggregate the sliced DF -- first 2 DW DFs only:
-            if index < 2:
-                aggregate_data_world(df=sliced_df, agg_dict=agg_dict)
+            if index == 0:
+                
+                # Add the season column to the sliced DF:
+                sliced_df = add_season_column(sliced_df)
+
+                # Aggregate the dataframe:
+                aggregate_data_world(df=sliced_df, agg_dict=agg_dict, groupby_cols=['season', 'team_id', 'player_name'])
+                league_dw_df_list.append(sliced_df)
+            elif index == 1:
+                
+                # Add the season column to the sliced DF:
+                sliced_df = add_season_column(sliced_df)
+
+                # Aggregate the dataframe:
+                aggregate_data_world(df=sliced_df, agg_dict=agg_dict, groupby_cols=['season', 'team_id', 'player_id',])
                 league_dw_df_list.append(sliced_df)
             else:
                 league_dw_df_list.append(sliced_df)
