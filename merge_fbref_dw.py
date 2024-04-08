@@ -193,16 +193,16 @@ def main():
                 sliced_df = add_season_column(sliced_df)
 
                 # Aggregate the dataframe:
-                aggregate_data_world(df=sliced_df, agg_dict=agg_dict, groupby_cols=['season', 'team_id', 'player_name'])
-                league_dw_df_list.append(sliced_df)
+                agg_df = aggregate_data_world(df=sliced_df, agg_dict=agg_dict, groupby_cols=['season', 'team_id', 'player_name'])
+                league_dw_df_list.append(agg_df)
             elif index == 1:
                 
                 # Add the season column to the sliced DF:
                 sliced_df = add_season_column(sliced_df)
 
                 # Aggregate the dataframe:
-                aggregate_data_world(df=sliced_df, agg_dict=agg_dict, groupby_cols=['season', 'team_id', 'player_id',])
-                league_dw_df_list.append(sliced_df)
+                agg_df = aggregate_data_world(df=sliced_df, agg_dict=agg_dict, groupby_cols=['season', 'team_id', 'player_id',])
+                league_dw_df_list.append(agg_df)
             else:
                 league_dw_df_list.append(sliced_df)
 
