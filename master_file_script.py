@@ -8,7 +8,7 @@ import pandas as pd
 import os
 
 # Global variables:
-repo_dir = os.getcwd()  # Directory of the notebook
+repo_dir = os.path.dirname(os.path.abspath(__file__))  # Directory of the script
 source_data_dir = os.path.join(repo_dir, 'fbref-dw-merges')
 # League IDs for iteration (top 4 only):
 fbref_league_ids = ['ENG-Premier League', 'ESP-La Liga', 'FRA-Ligue 1', 'ITA-Serie A']
