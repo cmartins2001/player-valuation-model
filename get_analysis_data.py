@@ -198,7 +198,7 @@ def main():
     for position in ['DF', 'MF', 'FW']:
 
         # Slice the final master DF:
-        position_df = final_master_df[final_master_df['position'] == position]
+        position_df = final_master_df[final_master_df['position'].str.contains(position)]
 
         # Initialize StandardScaler from sklearn:
         scaler = StandardScaler()
