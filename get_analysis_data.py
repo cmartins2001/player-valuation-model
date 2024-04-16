@@ -189,9 +189,32 @@ def main():
     # Create a DataFrame from the scaled data:
     scaled_df = pd.DataFrame(scaled_data, columns=final_master_df.columns[6:146])
 
-    # Send standardized master file to a CSV in the source directory:
+    # Send standardized master DF to a CSV in the source directory:
     make_csv(output_dir, scaled_df, 'master_file_standardized')
     print(f'Second file created: Row Total = {scaled_df.shape[0]}')
+
+    # ------------ Final Step: Position-level standardized dataframes ------------
+
+    for position in ['DF', 'MF', 'FW']:
+
+        # Slice the final master DF:
+        position_df = final_master_df[final_master_df['position'] == position]
+
+        # Initialize StandardScaler from sklearn:
+        scaler = StandardScaler()
+
+        # Data to standardize:
+        position_data_to_scale = position_df.iloc[:, 6:146].values
+
+        # Fit and transform the selected columns:
+        position_scaled_data = scaler.fit_transform(position_data_to_scale)
+
+        # Create a DataFrame from the scaled data:
+        position_scaled_df = pd.DataFrame(position_scaled_data, columns=position_df.columns[ 6:146])
+
+        # Send standardized position DF to a CSV in the source directory:
+        make_csv(output_dir, position_scaled_df, f'{position}_standardized')
+        print(f'{position} file created: Row Total = {position_scaled_data.shape[0]}')
 
 
 if __name__ == '__main__':
