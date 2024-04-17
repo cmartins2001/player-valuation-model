@@ -12,6 +12,7 @@ import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 import statsmodels.api as sm
+from sklearn.linear_model import Lasso
 from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error, median_absolute_error
 
 # Directory variables:
@@ -154,10 +155,33 @@ def main():
     # OLS performance evaluation visuals:
 
     # Plot OLS training model residuals:
-    resid_plot(train_ols_results, model_name='PCA-OLS')
+    # resid_plot(train_ols_results, model_name='PCA-OLS')
 
     # Plot OLS test predictions versus actuals:
-    pred_vs_actuals_plot(y_test_df, ols_test_pred, model_name='PCA-OLS')
+    # pred_vs_actuals_plot(y_test_df, ols_test_pred, model_name='PCA-OLS')
+
+    # ------------ Start of PCA-Lasso model fitting ------------
+
+    # Initialize the Lasso regressor:
+    lasso_reg = Lasso()
+
+    # Fit to training data:
+    train_lasso_model = lasso_reg.fit(X_train_pca, y_train_df)
+
+    # Predict on test data:
+    lasso_test_pred = lasso_reg.predict(X_test_pca)
+
+    # Error metrics (testing):
+    lasso_mae = mean_absolute_error(y_test_df, lasso_test_pred)
+    lasso_mse = mean_squared_error(y_test_df, lasso_test_pred)
+    lasso_rmse = np.sqrt(lasso_mse)
+    lasso_mape = mean_absolute_percentage_error(y_test_df, lasso_test_pred)
+    lasso_MedAE = median_absolute_error(y_test_df, lasso_test_pred)
+    lasso_errors = [lasso_mae, lasso_mse, lasso_rmse, lasso_mape, lasso_MedAE]
+
+    # Print OLS error metrics:
+    for var, name in zip(lasso_errors, ['MAE', 'MSE', 'RMSE', 'RMSE', 'MAPE', 'MedAE']):
+        print(f'\nLasso Regression with PCA Component Predictors - {name}: {var:.4f}\n')
 
 
 if __name__ == '__main__':
