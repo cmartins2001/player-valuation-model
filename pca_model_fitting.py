@@ -183,6 +183,8 @@ def main():
     for var, name in zip(lasso_errors, ['MAE', 'MSE', 'RMSE', 'RMSE', 'MAPE', 'MedAE']):
         print(f'\nLasso Regression with PCA Component Predictors - {name}: {var:.4f}\n')
 
+    # ------------ Start of PCA-Random Forest model fitting ------------
+
 
 if __name__ == '__main__':
     main()
