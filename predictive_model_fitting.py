@@ -96,10 +96,10 @@ def standardize_numeric_vars(df):
     # Create a DataFrame from the scaled data:
     scaled_df = pd.DataFrame(scaled_data, columns=df.columns[:first_dummy_loc])
 
-    # Concatenate the scaled_df with the dummy columns:
-    final_scaled_df = pd.concat([scaled_df, df.iloc[:, first_dummy_loc:]], axis=1)
+    # # Concatenate the scaled_df with the dummy columns:
+    # final_scaled_df = pd.concat([scaled_df, df.iloc[:, first_dummy_loc:]], axis=1)
 
-    return final_scaled_df
+    return scaled_df # TESTING TO SEE IF LASSO WORKS BETTER IF I EXCLUDE THE DUMMIES AND LN(MKT VALUE) COLUMN
 
 
 # Function that fits and runs a Lasso regression model:
@@ -112,22 +112,39 @@ def fit_and_run_LASSO(df, target_var, clean_y_name):
     X_train, X_test, y_train, y_test = split_data(standardized_df, target_var, test_size=.2, seed_value=42)
 
     # Initialize the Lasso model:
-    lasso_model = Lasso(alpha=0.1)
+    lasso_model = Lasso(max_iter=1000) # alpha=0.1, use this if can't tune the parameter; max_iter=1000 to avoid convergence error
+
+    # Create CV grid search space:
+    search_space = {'alpha' : [0.001, 0.01, 0.1, 1, 10]}
+
+    # Initialize GridSearchCV:
+    grid_search = GridSearchCV(lasso_model, search_space, cv=5, scoring='neg_mean_squared_error')
+
+    # Fit GridSearchCV on training data:
+    grid_search.fit(X_train, y_train)
+
+    # Get the best model after grid search:
+    best_lasso_model = grid_search.best_estimator_
+
+    # Print the parameter used:
+    print(f'\nLasso Parameter Selected: {grid_search.best_params_}\n')
 
     # Fit on training data:
-    trained_lasso = lasso_model.fit(X_train, y_train)
+    # trained_lasso = lasso_model.fit(X_train, y_train)
 
     # Extract important features:
-    selected_features = X_train.columns[trained_lasso.coef_ != 0]
+    # selected_features = X_train.columns[trained_lasso.coef_ != 0]
+    selected_features = X_train.columns[best_lasso_model.coef_ != 0]
 
     # Predict on test data:
-    pred_lasso = trained_lasso.predict(X_test)
+    # pred_lasso = trained_lasso.predict(X_test)
+    pred_lasso = best_lasso_model.predict(X_test)
 
     # Lasso performance metrics:
-    model_performance_metrics(y_test, pred_lasso, f'Lasso - Y = {clean_y_name}')
+    model_performance_metrics(y_test, pred_lasso, f'Tuned Lasso - Y = {clean_y_name}')
 
     # Predicted vs. actuals plot:
-    pred_vs_actuals_plot(y_test, pred_lasso, f'Lasso - Y = {clean_y_name}')
+    pred_vs_actuals_plot(y_test, pred_lasso, f'Tuned Lasso - Y = {clean_y_name}')
 
     # Return important lasso features for analysis:
     return selected_features
@@ -159,9 +176,14 @@ def main():
 
     # ------------ Start of Lasso regression model fitting ------------
 
-    # test the lasso fitting function:
+    # Fit and run untuned LASSO models on both outcomes:
+    # for outcome, clean_outcome in zip(['market_value_in_eur', 'log_mkt_val'], ['Market Value (euros)', 'ln(Market Value)']):    
+    #     fit_and_run_LASSO(master_df, outcome, clean_outcome)
+    #     print(f'Lasso Model with Y = {clean_outcome} - Important Features: \n{fit_and_run_LASSO(master_df, outcome, clean_outcome)}')
+
+    # Test new lasso fit function with parameter tuning:
     fit_and_run_LASSO(master_df, 'market_value_in_eur', 'Market Value (euros)')
-    fit_and_run_LASSO(master_df, 'log_mkt_val', 'LN(Market Value)')
+    print(f"Lasso Model with Y = Market Value (euros) - Important Features: \n{fit_and_run_LASSO(master_df, 'market_value_in_eur', 'Market Value (euros)')}")
 
 
 if __name__ == "__main__":
