@@ -124,10 +124,10 @@ def fit_and_run_LASSO(df, target_var, clean_y_name):
     pred_lasso = trained_lasso.predict(X_test)
 
     # Lasso performance metrics:
-    model_performance_metrics(y_test, pred_lasso, 'Lasso Regression')
+    model_performance_metrics(y_test, pred_lasso, f'Lasso - Y = {clean_y_name}')
 
     # Predicted vs. actuals plot:
-    pred_vs_actuals_plot(y_test, pred_lasso, 'Lasso Regression')
+    pred_vs_actuals_plot(y_test, pred_lasso, f'Lasso - Y = {clean_y_name}')
 
     # Return important lasso features for analysis:
     return selected_features
@@ -159,6 +159,9 @@ def main():
 
     # ------------ Start of Lasso regression model fitting ------------
 
+    # test the lasso fitting function:
+    fit_and_run_LASSO(master_df, 'market_value_in_eur', 'Market Value (euros)')
+    fit_and_run_LASSO(master_df, 'log_mkt_val', 'LN(Market Value)')
 
 
 if __name__ == "__main__":
