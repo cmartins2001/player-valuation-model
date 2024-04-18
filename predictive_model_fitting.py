@@ -12,6 +12,7 @@ import seaborn as sns
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import Lasso
+from sklearn.ensemble import RandomForestRegressor
 import statsmodels.api as sm
 from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error, median_absolute_error, r2_score
 # Import my functions from PCA script:
@@ -150,6 +151,31 @@ def fit_and_run_LASSO(df, target_var, clean_y_name):
     return selected_features
 
 
+# Function that fits a random forest regressor on a dataframe:
+def fit_and_run_RANDOMFOREST(df, target_var, clean_y_name):
+    
+    # Conduct the test-train split with the standardized dataframe:
+    X_train, X_test, y_train, y_test = split_data(df, target_var, test_size=.2, seed_value=42)
+
+    # Initialize the RF model:
+    rf_model = RandomForestRegressor(n_estimators=100, random_state=42, min_samples_split=5, max_depth=None)
+
+    # Train the model on the training data:
+    train_rf_results = rf_model.fit(X_train, y_train)
+
+    # Print the feature importance:
+    print(f"Random Forest Feature Importances: {train_rf_results.feature_importances_}")
+
+    # Predict the test data:
+    pred_rf = train_rf_results.predict(X_test)
+
+    # Error metrics:
+    model_performance_metrics(y_test, pred_rf, f'Random Forest - Y = {clean_y_name}')
+
+    # Predicted vs. actuals:
+    pred_vs_actuals_plot(y_test, pred_rf, f'Random Forest - Y = {clean_y_name}')
+
+
 
 def main():
     
@@ -184,6 +210,8 @@ def main():
     # Test new lasso fit function with parameter tuning:
     fit_and_run_LASSO(master_df, 'market_value_in_eur', 'Market Value (euros)')
     print(f"Lasso Model with Y = Market Value (euros) - Important Features: \n{fit_and_run_LASSO(master_df, 'market_value_in_eur', 'Market Value (euros)')}")
+
+    # ------------ Start of Random Forest model fitting ------------
 
 
 if __name__ == "__main__":
