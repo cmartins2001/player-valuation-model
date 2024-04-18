@@ -47,6 +47,38 @@ def add_league_name_col(df):
     return df
 
 
+# Function that fits/predicts OLS an model on a dataframe:
+def fit_and_run_OLS(df, target_var, clean_y_name):
+    '''
+    This function accepts a master dataframe with dummies, conducts a test-train split,
+    fits/predicts an OLS regression, then outputs error metrics and model performance
+    visuals into the proper GitHub directories.
+    '''
+
+    # Call the test-train split function:
+    X_train, X_test, y_train, y_test = split_data(df, target_var, test_size=.2, seed_value=42)
+
+    # Train OLS model:
+    train_ols_model = sm.OLS(y_train, X_train)
+    train_ols_results = train_ols_model.fit()
+
+    # Print output:
+    print(train_ols_results.summary())
+
+    # Predict on test data:
+    ols_test_pred = train_ols_results.predict(X_test)
+
+    # Print Error Metrics:
+    model_performance_metrics(y_test, ols_test_pred, f'OLS - Y = {clean_y_name}')
+
+    # Residual plot:
+    resid_plot(train_ols_results, model_name=f'OLS - Y = {clean_y_name}')
+
+    # Predicted vs actuals plot:
+    pred_vs_actuals_plot(y_test, ols_test_pred, model_name=f'OLS - Y = {clean_y_name}')
+
+
+
 def main():
     
     # Import master file:
@@ -57,46 +89,22 @@ def main():
     
     # Add league name, generate dummies, drop all string columns:
     raw_df = add_league_name_col(raw_df)
-    league_dummies_df = pd.get_dummies(raw_df['league_name'], drop_first=False)
+    league_dummies_df = pd.get_dummies(raw_df['league_name'], drop_first=True) # one-hot encoding, drop first to create a reference category
     master_df = pd.concat([raw_df, league_dummies_df], axis=1)
     master_df = master_df.drop(columns=['league_name', 'league', 'season', 'team', 'player_name', 'nationality', 'position'])
 
     # Add the LN(market value) column:
     master_df = add_log_mkt_val_col(master_df)
-    
-    # Conduct the train-test split with logged market value as the target:
-    X_train_df_log, X_test_df_log, y_train_df_log, y_test_df_log = split_data(master_df, 'log_mkt_val')
-
-    # Conduct the train-test split with market value as the target:
-    X_train_df, X_test_df, y_train_df, y_test_df = split_data(master_df)
 
     # ------------ Start of OLS model fitting with both targets ------------
-    train_ols_model = sm.OLS(y_train_df, X_train_df)
-    train_ols_model_log = sm.OLS(y_train_df_log, X_train_df_log)
-    train_ols_results = train_ols_model.fit()
-    train_ols_results_log = train_ols_model_log.fit()
 
-    # OLS Regression Output:
-    # print(train_ols_results.summary())
-    print(train_ols_results_log.summary())
-
-    # Use the OLS model to predict the TEST data:
-    ols_test_pred = train_ols_results.predict(X_test_df)
-    ols_test_pred_log = train_ols_results_log.predict(X_test_df_log)
-
-    # # Print OLS error metrics:
-    # model_performance_metrics(y_test_df, ols_test_pred, 'OLS')
-    model_performance_metrics(y_test_df_log, ols_test_pred_log, 'OLS - Logged Outcome')
-
-    # # OLS residual plot:
-    # resid_plot(train_ols_results, model_name='OLS')
-    resid_plot(train_ols_results_log, model_name='OLS - Logged Outcome')
-
-    # # Plot OLS test predictions versus actuals:
-    # pred_vs_actuals_plot(y_test_df, ols_test_pred, model_name='OLS')
-    pred_vs_actuals_plot(y_test_df_log, ols_test_pred_log, model_name='OLS - Logged Outcome')
+    # Iterate OLS model fitting over different outcomes:
+    for outcome, clean_outcome in zip(['market_value_in_eur', 'log_mkt_val'], ['Market Value (euros)', 'ln(Market Value)']):
+        fit_and_run_OLS(master_df, outcome, clean_outcome)
 
     # ------------ Start of Lasso regression model fitting ------------
+
+
 
 
 if __name__ == "__main__":

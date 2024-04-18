@@ -2,7 +2,7 @@
 Script that cleans the fbref-dw master file and generates two outputs:
 (1) a cleaned master file with the covariate dummies
 (2) a standardized master file with only quantitative data for PCA
-Last update: 4/16/2024
+Last update: 4/18/2024
 '''
 
 # Import libraries:
@@ -149,7 +149,7 @@ def main():
     for col in dummy_cols:
 
         # Create the dummy variable dataframe:
-        dummy_df = pd.get_dummies(cleaned_master_df[col], drop_first=False)
+        dummy_df = pd.get_dummies(cleaned_master_df[col], drop_first=True) # dropping first dummy category to serve as a the reference for each dummy column; helps mitigate multi-collinearity issues when fitting regression models
 
         # Add it to the list of dataframes to concat:
         dfs_to_concat.append(dummy_df)
