@@ -143,30 +143,30 @@ def main():
 
     # ------------ Start of PCA-OLS model fitting ------------
 
-    # # Add a constant column to the pca feature dataframes:
-    # X_train_pca_with_constant = sm.add_constant(X_train_pca)
-    # X_test_pca_with_constant = sm.add_constant(X_test_pca)
+    # Add a constant column to the pca feature dataframes:
+    X_train_pca_with_constant = sm.add_constant(X_train_pca)
+    X_test_pca_with_constant = sm.add_constant(X_test_pca)
 
-    # # Fit the OLS model:
-    # train_ols_model = sm.OLS(y_train_df, X_train_pca_with_constant) # Y from training data against principle components from training data
-    # train_ols_results = train_ols_model.fit()
+    # Fit the OLS model:
+    train_ols_model = sm.OLS(y_train_df, X_train_pca_with_constant) # Y from training data against principle components from training data
+    train_ols_results = train_ols_model.fit()
 
-    # # # OLS Regression Output:
-    # print(train_ols_results.summary())
+    # # OLS Regression Output:
+    print(train_ols_results.summary())
 
-    # # Use the OLS model to predict the TEST data:
-    # ols_test_pred = train_ols_results.predict(X_test_pca_with_constant)
+    # Use the OLS model to predict the TEST data:
+    ols_test_pred = train_ols_results.predict(X_test_pca_with_constant)
 
-    # # Print OLS error metrics:
-    # model_performance_metrics(y_test_df, ols_test_pred, 'PCA-OLS')
+    # Print OLS error metrics:
+    model_performance_metrics(y_test_df, ols_test_pred, 'PCA-OLS')
 
     # OLS performance evaluation visuals:
 
     # Plot OLS training model residuals:
-    # resid_plot(train_ols_results, model_name='PCA-OLS')
+    resid_plot(train_ols_results, model_name='PCA-OLS')
 
     # Plot OLS test predictions versus actuals:
-    # pred_vs_actuals_plot(y_test_df, ols_test_pred, model_name='PCA-OLS')
+    pred_vs_actuals_plot(y_test_df, ols_test_pred, model_name='PCA-OLS')
 
     # ------------ Start of PCA-Random Forest model fitting ------------
 
