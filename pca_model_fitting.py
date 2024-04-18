@@ -9,7 +9,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.decomposition import PCA
 import statsmodels.api as sm
 from sklearn.ensemble import RandomForestRegressor
@@ -74,6 +74,23 @@ def fit_ols_on_pca(x_train_pca, x_test_pca, y_train):
     return train_ols_results
 
 
+# Function that computes model performance metrics and prints them:
+def model_performance_metrics(test_actuals, model_predictions, model_name : str):
+
+    # Define metrics using sklearn:
+    mae = mean_absolute_error(test_actuals, model_predictions)
+    mse = mean_squared_error(test_actuals, model_predictions)
+    rmse = np.sqrt(mse)
+    mape = mean_absolute_percentage_error(test_actuals, model_predictions)
+    MedAE = median_absolute_error(test_actuals, model_predictions)
+    r_squared = r2_score(test_actuals, model_predictions)
+    errors = [mae, mse, rmse, mape, MedAE, r_squared]
+
+    # Print error metrics:
+    for var, name in zip(errors, ['MAE', 'MSE', 'RMSE', 'MAPE', 'MedAE', 'R-Squared']):
+        print(f'\n{model_name} - {name}: {var:.4f}\n')
+
+
 # Function that generates a residual plot for a trained model fit:
 def resid_plot(model_results, model_name : str):
 
@@ -126,11 +143,11 @@ def main():
 
     # ------------ Start of PCA-OLS model fitting ------------
 
-    # Add a constant column to the pca feature dataframes:
-    X_train_pca_with_constant = sm.add_constant(X_train_pca)
-    X_test_pca_with_constant = sm.add_constant(X_test_pca)
+    # # Add a constant column to the pca feature dataframes:
+    # X_train_pca_with_constant = sm.add_constant(X_train_pca)
+    # X_test_pca_with_constant = sm.add_constant(X_test_pca)
 
-    # # # Fit the OLS model:
+    # # Fit the OLS model:
     # train_ols_model = sm.OLS(y_train_df, X_train_pca_with_constant) # Y from training data against principle components from training data
     # train_ols_results = train_ols_model.fit()
 
@@ -140,17 +157,8 @@ def main():
     # # Use the OLS model to predict the TEST data:
     # ols_test_pred = train_ols_results.predict(X_test_pca_with_constant)
 
-    # # OLS Error Metrics:
-    # ols_mae = mean_absolute_error(y_test_df, ols_test_pred)
-    # ols_mse = mean_squared_error(y_test_df, ols_test_pred)
-    # ols_rmse = np.sqrt(ols_mse)
-    # ols_mape = mean_absolute_percentage_error(y_test_df, ols_test_pred)
-    # ols_MedAE = median_absolute_error(y_test_df, ols_test_pred)
-    # ols_errors = [ols_mae, ols_mse, ols_rmse, ols_mape, ols_MedAE]
-
     # # Print OLS error metrics:
-    # for var, name in zip(ols_errors, ['MAE', 'MSE', 'RMSE', 'RMSE', 'MAPE', 'MedAE']):
-    #     print(f'\nOLS with PCA Component Predictors - {name}: {var:.4f}\n')
+    # model_performance_metrics(y_test_df, ols_test_pred, 'PCA-OLS')
 
     # OLS performance evaluation visuals:
 
@@ -162,8 +170,34 @@ def main():
 
     # ------------ Start of PCA-Random Forest model fitting ------------
 
-    # Initialize the random forest model:
-    rf_pca = RandomForestRegressor(n_estimators = 100, random_state = 42)
+    # # Define the random forest parameter search space for tuning:
+    # rf_search_space = {'n_estimators' : [25, 50, 100], #, 200, 500],
+    #                    'max_depth' : [None, 3, 5], #, 10, 20],
+    #                    'min_samples_split' : [2, 5, 9] #, 10]
+    #                    } 
+    
+    # # Initiate an RF model with no parameters:
+    # rf_model = RandomForestRegressor(random_state=42)
+
+    # # Use CV Grid Searching to tune RF hyperparameters:
+    # RF_GS = GridSearchCV(estimator=rf_model,
+    #                      param_grid=rf_search_space,
+    #                      scoring="neg_root_mean_squared_error",
+    #                      refit=True,
+    #                      cv = 5,
+    #                      n_jobs=-1) # use -1 to let the program use ALL CPU cores
+    # RF_GS_fit = RF_GS.fit(X_train_pca, y_train_df)
+    
+    # # Extract the best parameters and estimator:
+    # rf_best_params = RF_GS_fit.best_params_
+    # print(f"\nRF Parameters Used: \n{rf_best_params}\n")
+    # rf_best_estimator = RF_GS_fit.best_estimator_
+
+    # # Fit the best estimator on the test PCA data:
+    # rf_pred = rf_best_estimator.predict(X_test_pca)
+    
+    # Initialize the random forest model using tuned parameters from previous step:
+    rf_pca = RandomForestRegressor(n_estimators = 100, random_state = 42, min_samples_split=5, max_depth=None)
 
     # Train the random forest model on the training PCA data:
     train_rf_results = rf_pca.fit(X_train_pca, y_train_df)
@@ -171,18 +205,8 @@ def main():
     # Predict the test PCA data:
     rf_pred = train_rf_results.predict(X_test_pca)
 
-    # RF Error Metrics:
-    rf_mae = mean_absolute_error(y_test_df, rf_pred)
-    rf_mse = mean_squared_error(y_test_df, rf_pred)
-    rf_rmse = np.sqrt(rf_mse)
-    rf_mape = mean_absolute_percentage_error(y_test_df, rf_pred)
-    rf_MedAE = median_absolute_error(y_test_df, rf_pred)
-    rf_r_squared = r2_score(y_test_df, rf_pred)
-    rf_errors = [rf_mae, rf_mse, rf_rmse, rf_mape, rf_MedAE]
-
-    # Print OLS error metrics:
-    for var, name in zip(rf_errors, ['MAE', 'MSE', 'RMSE', 'RMSE', 'MAPE', 'MedAE']):
-        print(f'\nRandom Forest with PCA Component Predictors - {name}: {var:.4f}\n')
+    # Random Forest error metrics:
+    model_performance_metrics(y_test_df, rf_pred, 'PCA Random Forest')
 
     # Random Forest performance evaluation visuals:
     pred_vs_actuals_plot(y_test_df, rf_pred, 'PCA-Random Forest')
