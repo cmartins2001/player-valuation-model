@@ -153,27 +153,70 @@ def fit_and_run_LASSO(df, target_var, clean_y_name):
 
 # Function that fits a random forest regressor on a dataframe:
 def fit_and_run_RANDOMFOREST(df, target_var, clean_y_name):
+
+    # Drop the log_mkt_val column:
+    df = df.drop(columns='log_mkt_val')
     
     # Conduct the test-train split with the standardized dataframe:
     X_train, X_test, y_train, y_test = split_data(df, target_var, test_size=.2, seed_value=42)
 
-    # Initialize the RF model:
-    rf_model = RandomForestRegressor(n_estimators=100, random_state=42, min_samples_split=5, max_depth=None)
+    # Create CV grid search space:
+    search_space = {'n_estimators' : [25, 50, 100], #, 200, 500],
+                    'max_depth' : [None, 3, 5], #, 10, 20],
+                    'min_samples_split' : [2, 5, 9] #, 10]
+                    }
+    
+    # Initialize the RF model with no parameters:
+    rf_model = RandomForestRegressor(n_estimators=100, min_samples_split=2, max_depth=None, random_state=42) # n_estimators=100, min_samples_split=5, max_depth=None
+
+    # Initialize GridSearchCV:
+    # grid_search = GridSearchCV(estimator=rf_model, 
+    #                            param_grid=search_space, 
+    #                            cv=5, 
+    #                            scoring='neg_mean_squared_error',
+    #                            refit=True,
+    #                            n_jobs=-1) # use all available CPU cores
+    
+    # Fit GridSearchCV on training data:
+    # grid_search.fit(X_train, y_train)
+
+    # # Best estimator:
+    # best_rf = grid_search.best_estimator_
+
+    # # Print best parameters:
+    # print(f"\nRF Parameters Used: \n{grid_search.best_params_}\n")
+
+    # # Predict on test data:
+    # pred_rf = best_rf.predict(X_test)
 
     # Train the model on the training data:
     train_rf_results = rf_model.fit(X_train, y_train)
 
-    # Print the feature importance:
-    print(f"Random Forest Feature Importances: {train_rf_results.feature_importances_}")
+    # Extract the feature importances:
+    rf_importances = train_rf_results.feature_importances_
+
+    # Get feature names
+    feature_names = X_train.columns
+
+    # Combine feature names and importances into a DataFrame
+    feature_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': rf_importances})
+
+    # Sort features by importance
+    feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
+
+    # Print top N important features
+    top_n = 20  # Set the number of top features to display
+    print(f"\nTuned Random Forest Model - Top {top_n} Important Features:\n")
+    print(feature_importance_df.head(top_n))
 
     # Predict the test data:
     pred_rf = train_rf_results.predict(X_test)
 
     # Error metrics:
-    model_performance_metrics(y_test, pred_rf, f'Random Forest - Y = {clean_y_name}')
+    model_performance_metrics(y_test, pred_rf, f'Tuned Random Forest - Y = {clean_y_name}')
 
     # Predicted vs. actuals:
-    pred_vs_actuals_plot(y_test, pred_rf, f'Random Forest - Y = {clean_y_name}')
+    pred_vs_actuals_plot(y_test, pred_rf, f'Tuned Random Forest - Y = {clean_y_name}')
 
 
 
@@ -208,10 +251,11 @@ def main():
     #     print(f'Lasso Model with Y = {clean_outcome} - Important Features: \n{fit_and_run_LASSO(master_df, outcome, clean_outcome)}')
 
     # Test new lasso fit function with parameter tuning:
-    fit_and_run_LASSO(master_df, 'market_value_in_eur', 'Market Value (euros)')
-    print(f"Lasso Model with Y = Market Value (euros) - Important Features: \n{fit_and_run_LASSO(master_df, 'market_value_in_eur', 'Market Value (euros)')}")
+    # fit_and_run_LASSO(master_df, 'market_value_in_eur', 'Market Value (euros)')
+    # print(f"Lasso Model with Y = Market Value (euros) - Important Features: \n{fit_and_run_LASSO(master_df, 'market_value_in_eur', 'Market Value (euros)')}")
 
     # ------------ Start of Random Forest model fitting ------------
+    fit_and_run_RANDOMFOREST(master_df, 'market_value_in_eur', 'Market Value (euros)')
 
 
 if __name__ == "__main__":
