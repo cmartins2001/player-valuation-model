@@ -10,6 +10,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import Lasso
 import statsmodels.api as sm
 from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error, median_absolute_error, r2_score
 # Import my functions from PCA script:
@@ -78,12 +80,68 @@ def fit_and_run_OLS(df, target_var, clean_y_name):
     pred_vs_actuals_plot(y_test, ols_test_pred, model_name=f'OLS - Y = {clean_y_name}')
 
 
+# Function that standardizes all non-dummy variables in the master file:
+def standardize_numeric_vars(df):
+
+    # Initialize the scaler:
+    scaler = StandardScaler()
+
+    # Define scaling column range:
+    first_dummy_loc = df.columns.get_loc('Alavés')
+    data_to_scale = df.iloc[:, :first_dummy_loc] # everything but the first dummy and onwards
+
+    # Fit and transform the selected columns:
+    scaled_data = scaler.fit_transform(data_to_scale)
+
+    # Create a DataFrame from the scaled data:
+    scaled_df = pd.DataFrame(scaled_data, columns=df.columns[:first_dummy_loc])
+
+    # Concatenate the scaled_df with the dummy columns:
+    final_scaled_df = pd.concat([scaled_df, df.iloc[:, first_dummy_loc:]], axis=1)
+
+    return final_scaled_df
+
+
+# Function that fits and runs a Lasso regression model:
+def fit_and_run_LASSO(df, target_var, clean_y_name):
+
+    # Create a standardized version of the master dataframe:
+    standardized_df = standardize_numeric_vars(df)
+
+    # Conduct the test-train split with the standardized dataframe:
+    X_train, X_test, y_train, y_test = split_data(standardized_df, target_var, test_size=.2, seed_value=42)
+
+    # Initialize the Lasso model:
+    lasso_model = Lasso(alpha=0.1)
+
+    # Fit on training data:
+    trained_lasso = lasso_model.fit(X_train, y_train)
+
+    # Extract important features:
+    selected_features = X_train.columns[trained_lasso.coef_ != 0]
+
+    # Predict on test data:
+    pred_lasso = trained_lasso.predict(X_test)
+
+    # Lasso performance metrics:
+    model_performance_metrics(y_test, pred_lasso, 'Lasso Regression')
+
+    # Predicted vs. actuals plot:
+    pred_vs_actuals_plot(y_test, pred_lasso, 'Lasso Regression')
+
+    # Return important lasso features for analysis:
+    return selected_features
+
+
 
 def main():
     
     # Import master file:
     raw_df = pd.read_csv(os.path.join(source_data_dir, 'master_file_with_dummies.csv')).drop(columns='Unnamed: 0')
 
+    # Add the LN(market value) column:
+    raw_df = add_log_mkt_val_col(raw_df)
+    
     # Add the 'Big Team' column:
     raw_df = add_big_team_col(raw_df)
     
@@ -93,17 +151,13 @@ def main():
     master_df = pd.concat([raw_df, league_dummies_df], axis=1)
     master_df = master_df.drop(columns=['league_name', 'league', 'season', 'team', 'player_name', 'nationality', 'position'])
 
-    # Add the LN(market value) column:
-    master_df = add_log_mkt_val_col(master_df)
-
     # ------------ Start of OLS model fitting with both targets ------------
 
     # Iterate OLS model fitting over different outcomes:
-    for outcome, clean_outcome in zip(['market_value_in_eur', 'log_mkt_val'], ['Market Value (euros)', 'ln(Market Value)']):
-        fit_and_run_OLS(master_df, outcome, clean_outcome)
+    # for outcome, clean_outcome in zip(['market_value_in_eur', 'log_mkt_val'], ['Market Value (euros)', 'ln(Market Value)']):
+    #     fit_and_run_OLS(master_df, outcome, clean_outcome)
 
     # ------------ Start of Lasso regression model fitting ------------
-
 
 
 

@@ -181,7 +181,7 @@ def main():
     # Columns [146:] do not need to be standardized or included in the PCA, they are dummies
 
     # Data to standardize:
-    data_to_scale = final_master_df.iloc[:, 6:146].values   # this is hard-coded based on the above code chunk
+    data_to_scale = final_master_df.iloc[:, 6:146].values
 
     # Fit and transform the selected columns:
     scaled_data = scaler.fit_transform(data_to_scale)
