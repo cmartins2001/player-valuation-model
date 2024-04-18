@@ -12,8 +12,8 @@ import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 import statsmodels.api as sm
-from sklearn.linear_model import Lasso
-from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error, median_absolute_error
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error, median_absolute_error, r2_score
 
 # Directory variables:
 repo_dir = os.path.dirname(os.path.abspath(__file__))  # Directory of the script
@@ -130,27 +130,27 @@ def main():
     X_train_pca_with_constant = sm.add_constant(X_train_pca)
     X_test_pca_with_constant = sm.add_constant(X_test_pca)
 
-    # # Fit the OLS model:
-    train_ols_model = sm.OLS(y_train_df, X_train_pca_with_constant) # Y from training data against principle components from training data
-    train_ols_results = train_ols_model.fit()
+    # # # Fit the OLS model:
+    # train_ols_model = sm.OLS(y_train_df, X_train_pca_with_constant) # Y from training data against principle components from training data
+    # train_ols_results = train_ols_model.fit()
 
-    # # OLS Regression Output:
-    print(train_ols_results.summary())
+    # # # OLS Regression Output:
+    # print(train_ols_results.summary())
 
-    # Use the OLS model to predict the TEST data:
-    ols_test_pred = train_ols_results.predict(X_test_pca_with_constant)
+    # # Use the OLS model to predict the TEST data:
+    # ols_test_pred = train_ols_results.predict(X_test_pca_with_constant)
 
-    # OLS Error Metrics:
-    ols_mae = mean_absolute_error(y_test_df, ols_test_pred)
-    ols_mse = mean_squared_error(y_test_df, ols_test_pred)
-    ols_rmse = np.sqrt(ols_mse)
-    ols_mape = mean_absolute_percentage_error(y_test_df, ols_test_pred)
-    ols_MedAE = median_absolute_error(y_test_df, ols_test_pred)
-    ols_errors = [ols_mae, ols_mse, ols_rmse, ols_mape, ols_MedAE]
+    # # OLS Error Metrics:
+    # ols_mae = mean_absolute_error(y_test_df, ols_test_pred)
+    # ols_mse = mean_squared_error(y_test_df, ols_test_pred)
+    # ols_rmse = np.sqrt(ols_mse)
+    # ols_mape = mean_absolute_percentage_error(y_test_df, ols_test_pred)
+    # ols_MedAE = median_absolute_error(y_test_df, ols_test_pred)
+    # ols_errors = [ols_mae, ols_mse, ols_rmse, ols_mape, ols_MedAE]
 
-    # Print OLS error metrics:
-    for var, name in zip(ols_errors, ['MAE', 'MSE', 'RMSE', 'RMSE', 'MAPE', 'MedAE']):
-        print(f'\nOLS with PCA Component Predictors - {name}: {var:.4f}\n')
+    # # Print OLS error metrics:
+    # for var, name in zip(ols_errors, ['MAE', 'MSE', 'RMSE', 'RMSE', 'MAPE', 'MedAE']):
+    #     print(f'\nOLS with PCA Component Predictors - {name}: {var:.4f}\n')
 
     # OLS performance evaluation visuals:
 
@@ -160,30 +160,32 @@ def main():
     # Plot OLS test predictions versus actuals:
     # pred_vs_actuals_plot(y_test_df, ols_test_pred, model_name='PCA-OLS')
 
-    # ------------ Start of PCA-Lasso model fitting ------------
+    # ------------ Start of PCA-Random Forest model fitting ------------
 
-    # Initialize the Lasso regressor:
-    lasso_reg = Lasso()
+    # Initialize the random forest model:
+    rf_pca = RandomForestRegressor(n_estimators = 100, random_state = 42)
 
-    # Fit to training data:
-    train_lasso_model = lasso_reg.fit(X_train_pca, y_train_df)
+    # Train the random forest model on the training PCA data:
+    train_rf_results = rf_pca.fit(X_train_pca, y_train_df)
 
-    # Predict on test data:
-    lasso_test_pred = lasso_reg.predict(X_test_pca)
+    # Predict the test PCA data:
+    rf_pred = train_rf_results.predict(X_test_pca)
 
-    # Error metrics (testing):
-    lasso_mae = mean_absolute_error(y_test_df, lasso_test_pred)
-    lasso_mse = mean_squared_error(y_test_df, lasso_test_pred)
-    lasso_rmse = np.sqrt(lasso_mse)
-    lasso_mape = mean_absolute_percentage_error(y_test_df, lasso_test_pred)
-    lasso_MedAE = median_absolute_error(y_test_df, lasso_test_pred)
-    lasso_errors = [lasso_mae, lasso_mse, lasso_rmse, lasso_mape, lasso_MedAE]
+    # RF Error Metrics:
+    rf_mae = mean_absolute_error(y_test_df, rf_pred)
+    rf_mse = mean_squared_error(y_test_df, rf_pred)
+    rf_rmse = np.sqrt(rf_mse)
+    rf_mape = mean_absolute_percentage_error(y_test_df, rf_pred)
+    rf_MedAE = median_absolute_error(y_test_df, rf_pred)
+    rf_r_squared = r2_score(y_test_df, rf_pred)
+    rf_errors = [rf_mae, rf_mse, rf_rmse, rf_mape, rf_MedAE]
 
     # Print OLS error metrics:
-    for var, name in zip(lasso_errors, ['MAE', 'MSE', 'RMSE', 'RMSE', 'MAPE', 'MedAE']):
-        print(f'\nLasso Regression with PCA Component Predictors - {name}: {var:.4f}\n')
+    for var, name in zip(rf_errors, ['MAE', 'MSE', 'RMSE', 'RMSE', 'MAPE', 'MedAE']):
+        print(f'\nRandom Forest with PCA Component Predictors - {name}: {var:.4f}\n')
 
-    # ------------ Start of PCA-Random Forest model fitting ------------
+    # Random Forest performance evaluation visuals:
+    pred_vs_actuals_plot(y_test_df, rf_pred, 'PCA-Random Forest')
 
 
 if __name__ == '__main__':
