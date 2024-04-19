@@ -257,8 +257,8 @@ def main():
     # ------------ Start of OLS model fitting with both targets ------------
 
     # Iterate OLS model fitting over different outcomes:
-    for outcome, clean_outcome in zip(['market_value_in_eur', 'log_mkt_val'], ['Market Value (euros)', 'ln(Market Value)']):
-        fit_and_run_OLS(master_df, outcome, clean_outcome)
+    # for outcome, clean_outcome in zip(['market_value_in_eur', 'log_mkt_val'], ['Market Value (euros)', 'ln(Market Value)']):
+    #     fit_and_run_OLS(master_df, outcome, clean_outcome)
 
     # ------------ Start of Lasso regression model fitting ------------
 
@@ -276,21 +276,50 @@ def main():
     # Slice master dataframe to only the RF features and the two outcome variables:
     # important_feature_list = fit_and_run_RANDOMFOREST(master_df, 'market_value_in_eur', 'Market Value (euros)')['Feature'].to_list()[0:25] # Top 25 most important features only
     
-    # Hard coded the RF features list to avoid running the algorithm every time:
-    important_feature_list = ['Big Team', 'age', 'npxG+xAG', 'onxG', 'xG+/-', 'SCA', 'Premier League', 'Att 3rd.1', 'Sh', 'GCA', 'Dis', '+/-', 'onG', 'PPM', 'SoT/90', 'Att Pen', 'Cmp%.3', 'PassLive', 'npxG+xAG.1', 'Sh/90', 'G+A', 'xAG', 'TotDist.1', '+/-90', '1/3']
+    # # Hard coded the RF features list to avoid running the algorithm every time:
+    # important_feature_list = ['Big Team', 'age', 'npxG+xAG', 'onxG', 'xG+/-', 'SCA', 'Premier League', 'Att 3rd.1', 'Sh', 'GCA', 'Dis', '+/-', 'onG', 'PPM', 'SoT/90', 'Att Pen', 'Cmp%.3', 'PassLive', 'npxG+xAG.1', 'Sh/90', 'G+A', 'xAG', 'TotDist.1', '+/-90', '1/3']
 
     # # Add the outcomes to the list:
-    important_feature_list.append('market_value_in_eur')
-    important_feature_list.append('log_mkt_val')
+    # important_feature_list.append('market_value_in_eur')
+    # important_feature_list.append('log_mkt_val')
 
-    # Slice the main dataframe:
-    rf_feature_sliced_df = master_df[important_feature_list] 
+    # # Slice the main dataframe:
+    # rf_feature_sliced_df = master_df[important_feature_list] 
 
-    # Run an OLS model using the sliced dataframe:
-    for outcome, clean_outcome in zip(['market_value_in_eur', 'log_mkt_val'], ['MV (euros) - RF Features Only', 'ln(Market Value) - RF Features Only']):
-        fit_and_run_OLS(rf_feature_sliced_df, outcome, clean_outcome)
+    # # Run an OLS model using the sliced dataframe:
+    # for outcome, clean_outcome in zip(['market_value_in_eur', 'log_mkt_val'], ['MV (euros) - RF Features Only', 'ln(Market Value) - RF Features Only']):
+    #     fit_and_run_OLS(rf_feature_sliced_df, outcome, clean_outcome)
 
-    # ------------ Start of OLS modeling with Random Forests' important features ------------
+    # ------------ Start of OLS modeling on position-specific datasets ------------
+
+    # Re-import master file:
+    pos_raw_df = pd.read_csv(os.path.join(source_data_dir, 'master_file_with_dummies.csv')).drop(columns='Unnamed: 0')
+
+    # Add the LN(market value) column:
+    pos_raw_df = add_log_mkt_val_col(pos_raw_df)
+    
+    # Add the 'Big Team' column:
+    pos_raw_df = add_big_team_col(pos_raw_df)
+    
+    # Add league name, generate dummies, drop all string columns:
+    pos_raw_df = add_league_name_col(pos_raw_df)
+    pos_league_dummies_df = pd.get_dummies(pos_raw_df['league_name'], drop_first=True) # one-hot encoding, drop first to create a reference category
+    pos_master_df = pd.concat([pos_raw_df, pos_league_dummies_df], axis=1)
+    pos_master_df = pos_master_df.drop(columns=['league_name', 'league', 'season', 'team', 'player_name', 'nationality'])
+
+    # Import the position-level data:
+    for pos in ['DF' 'MF', 'FW']:
+
+        # Slice the master dataframe by position:
+        pos_df = pos_master_df[pos_master_df['position'].str.contains(pos)]
+
+        # Remove the position column and print status messages:
+        pos_df = pos_df.drop(columns='position')
+        print(f'\nWorking on the {pos} data...\n')
+        print(f'\n{pos} Dataframe Row total: {pos_df.shape[0]}\n')
+
+        # Run the OLS model on the logged outcome:
+        fit_and_run_OLS(pos_df, 'log_mkt_val', f'ln(Market Value) - {pos} Only')
     
 
 if __name__ == "__main__":
