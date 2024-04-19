@@ -58,6 +58,16 @@ def fit_and_run_OLS(df, target_var, clean_y_name):
     visuals into the proper GitHub directories.
     '''
 
+    # Drop the Y column that was NOT selected to avoid prediction bias:
+    if target_var == 'market_value_in_eur':
+        if 'log_mkt_val' in df.columns:
+            df = df.drop(columns='log_mkt_val')
+    elif target_var == 'log_mkt_val':
+        if 'market_value_in_eur' in df.columns:
+            df = df.drop(columns='market_value_in_eur')
+    else:
+        print('\n***INVALID TARGET VARIABLE***\n')
+
     # Call the test-train split function:
     X_train, X_test, y_train, y_test = split_data(df, target_var, test_size=.2, seed_value=42)
 
@@ -154,8 +164,13 @@ def fit_and_run_LASSO(df, target_var, clean_y_name):
 # Function that fits a random forest regressor on a dataframe:
 def fit_and_run_RANDOMFOREST(df, target_var, clean_y_name):
 
-    # Drop the log_mkt_val column:
-    df = df.drop(columns='log_mkt_val')
+    # Drop the Y column that was NOT selected:
+    if target_var == 'market_value_in_eur':
+        df = df.drop(columns='log_mkt_val')
+    elif target_var == 'log_mkt_val':
+        df = df.drop(columns='market_value_in_eur')
+    else:
+        print('\n***INVALID TARGET VARIABLE***\n')
     
     # Conduct the test-train split with the standardized dataframe:
     X_train, X_test, y_train, y_test = split_data(df, target_var, test_size=.2, seed_value=42)
@@ -166,7 +181,7 @@ def fit_and_run_RANDOMFOREST(df, target_var, clean_y_name):
                     'min_samples_split' : [2, 5, 9] #, 10]
                     }
     
-    # Initialize the RF model with no parameters:
+    # Initialize the RF model with the tuned parameters; CV process is commented out for reference:
     rf_model = RandomForestRegressor(n_estimators=100, min_samples_split=2, max_depth=None, random_state=42) # n_estimators=100, min_samples_split=5, max_depth=None
 
     # Initialize GridSearchCV:
@@ -218,6 +233,8 @@ def fit_and_run_RANDOMFOREST(df, target_var, clean_y_name):
     # Predicted vs. actuals:
     pred_vs_actuals_plot(y_test, pred_rf, f'Tuned Random Forest - Y = {clean_y_name}')
 
+    # Output the important features dataframe for use later in OLS model building:
+    return feature_importance_df
 
 
 def main():
@@ -240,8 +257,8 @@ def main():
     # ------------ Start of OLS model fitting with both targets ------------
 
     # Iterate OLS model fitting over different outcomes:
-    # for outcome, clean_outcome in zip(['market_value_in_eur', 'log_mkt_val'], ['Market Value (euros)', 'ln(Market Value)']):
-    #     fit_and_run_OLS(master_df, outcome, clean_outcome)
+    for outcome, clean_outcome in zip(['market_value_in_eur', 'log_mkt_val'], ['Market Value (euros)', 'ln(Market Value)']):
+        fit_and_run_OLS(master_df, outcome, clean_outcome)
 
     # ------------ Start of Lasso regression model fitting ------------
 
@@ -250,13 +267,31 @@ def main():
     #     fit_and_run_LASSO(master_df, outcome, clean_outcome)
     #     print(f'Lasso Model with Y = {clean_outcome} - Important Features: \n{fit_and_run_LASSO(master_df, outcome, clean_outcome)}')
 
-    # Test new lasso fit function with parameter tuning:
-    # fit_and_run_LASSO(master_df, 'market_value_in_eur', 'Market Value (euros)')
-    # print(f"Lasso Model with Y = Market Value (euros) - Important Features: \n{fit_and_run_LASSO(master_df, 'market_value_in_eur', 'Market Value (euros)')}")
-
     # ------------ Start of Random Forest model fitting ------------
-    fit_and_run_RANDOMFOREST(master_df, 'market_value_in_eur', 'Market Value (euros)')
+    # for outcome, clean_outcome in zip(['market_value_in_eur', 'log_mkt_val'], ['Market Value (euros)', 'ln(Market Value)']):
+    #     fit_and_run_RANDOMFOREST(master_df, outcome, clean_outcome)
 
+    # ------------ Start of OLS modeling with Random Forests' important features ------------
+    
+    # Slice master dataframe to only the RF features and the two outcome variables:
+    # important_feature_list = fit_and_run_RANDOMFOREST(master_df, 'market_value_in_eur', 'Market Value (euros)')['Feature'].to_list()[0:25] # Top 25 most important features only
+    
+    # Hard coded the RF features list to avoid running the algorithm every time:
+    important_feature_list = ['Big Team', 'age', 'npxG+xAG', 'onxG', 'xG+/-', 'SCA', 'Premier League', 'Att 3rd.1', 'Sh', 'GCA', 'Dis', '+/-', 'onG', 'PPM', 'SoT/90', 'Att Pen', 'Cmp%.3', 'PassLive', 'npxG+xAG.1', 'Sh/90', 'G+A', 'xAG', 'TotDist.1', '+/-90', '1/3']
+
+    # # Add the outcomes to the list:
+    important_feature_list.append('market_value_in_eur')
+    important_feature_list.append('log_mkt_val')
+
+    # Slice the main dataframe:
+    rf_feature_sliced_df = master_df[important_feature_list] 
+
+    # Run an OLS model using the sliced dataframe:
+    for outcome, clean_outcome in zip(['market_value_in_eur', 'log_mkt_val'], ['MV (euros) - RF Features Only', 'ln(Market Value) - RF Features Only']):
+        fit_and_run_OLS(rf_feature_sliced_df, outcome, clean_outcome)
+
+    # ------------ Start of OLS modeling with Random Forests' important features ------------
+    
 
 if __name__ == "__main__":
     main()
