@@ -318,8 +318,11 @@ def main():
         print(f'\nWorking on the {pos} data...\n')
         print(f'\n{pos} Dataframe Row total: {pos_df.shape[0]}\n')
 
-        # Run the OLS model on the logged outcome:
-        fit_and_run_OLS(pos_df, 'log_mkt_val', f'ln(Market Value) - {pos} Only')
+        # # Run the OLS model on the logged outcome:
+        # fit_and_run_OLS(pos_df, 'log_mkt_val', f'ln(Market Value) - {pos} Only')
+
+        # Report the random feature importances for each dataframe:
+        fit_and_run_RANDOMFOREST(pos_df, 'log_mkt_val', f'***RF ln(Market Value) - {pos} Only')
     
 
 if __name__ == "__main__":
