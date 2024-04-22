@@ -50,19 +50,8 @@ def main():
     for league in league_ids:
         for season in season_ids:
 
-            # Initialize the list of statistic dataframes:
-            df_list = []
-
-            for stat in stat_types:
-                print(f'\nWorking on the {stat} statistic for {league}...\n')
-
-                # Create the dataframe using SD and print its row count:
-                stat_df = get_player_stats(league=league, season=season, stat_type=stat)
-                print(f'\n{stat} statistic dataframe row count: {stat_df.shape[1]}\n')
-
-                # Add the dataframe to the list:
-                df_list.append(stat_df)
-                print(f'\nSuccessfully added the {stat} statistic dataframe list of dataframes.\n')
+            # Create a list of statistic dataframes:
+            df_list = [get_player_stats(league=league, season=season, stat_type=stat) for stat in stat_types]
 
             # Sort the multi index of each dataframe for more efficient merging later on:
             for df in df_list:
