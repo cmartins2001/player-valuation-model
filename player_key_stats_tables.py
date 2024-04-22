@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 plt.style.use('fivethirtyeight')
 
 # Global variables:
-repo_dir = os.getcwd()  # Directory of the script
+repo_dir = os.path.dirname(os.path.abspath(__file__))  # Directory of the script
 merged_data_dir = os.path.join(repo_dir, "Merged Data")   # Path to the Merged Data folder
 export_dir = os.path.join(repo_dir, "Summary Tables")     # Path to the Summary Data folder
 player_export_dir = os.path.join(export_dir, "Player Data") # Path to player data within Summary Data Folder
