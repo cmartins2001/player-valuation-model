@@ -1,6 +1,6 @@
 '''
 Python script for creating league-level statistics tables.
-Last Updated: 3/27/2024
+Last Updated: 4/22/2024
 '''
 
 # Import libraries:
@@ -116,25 +116,31 @@ def key_stats_table_all_seasons(df, stat_dict, pos):
               )
 
 
-# Make a list of imported dataframes:
-league_df_list = [import_merged_data(os.path.join(merged_data_dir, f"{league}_full_merge.xlsx")) for league in league_ids]
+def main():
 
-# Make a list of clean, copied dataframes:
-cleaned_league_df_list = [remove_unnamed_cols((league_df.copy(deep=True))).dropna(subset=['position']) for league_df in league_df_list]
+    # Make a list of imported dataframes:
+    league_df_list = [import_merged_data(os.path.join(merged_data_dir, f"{league}_full_merge.xlsx")) for league in league_ids]
 
-# Create a nested for loop for each position:
-positions = ['DF', 'MF', 'FW']
-seasons = [1718, 1819, 1920, 2021, 2122, 2223]
-stat_dicts = [def_stat_dict, mid_stat_dict, fw_stat_dict]
+    # Make a list of clean, copied dataframes:
+    cleaned_league_df_list = [remove_unnamed_cols((league_df.copy(deep=True))).dropna(subset=['position']) for league_df in league_df_list]
 
-for pos, stat_dict in zip(positions, stat_dicts):
+    # Create a nested for loop for each position:
+    positions = ['DF', 'MF', 'FW']
+    seasons = [1718, 1819, 1920, 2021, 2122, 2223]
+    stat_dicts = [def_stat_dict, mid_stat_dict, fw_stat_dict]
 
-    # File destination path:
-    pos_export_dir = os.path.join(export_dir, pos)
+    for pos, stat_dict in zip(positions, stat_dicts):
 
-    # Create a list of summary statistics table for each league for the position in the loop:
-    stat_df_list = [key_stats_table_all_seasons(clean_league_df, stat_dict, pos) for clean_league_df in cleaned_league_df_list]
+        # File destination path:
+        pos_export_dir = os.path.join(export_dir, pos)
 
-    # Send the summary tables to their respective directories:
-    for df, league in zip(stat_df_list, league_ids):
-        make_xl(pos_export_dir, df, file_name=f"{league}_{pos}_keystats")
+        # Create a list of summary statistics table for each league for the position in the loop:
+        stat_df_list = [key_stats_table_all_seasons(clean_league_df, stat_dict, pos) for clean_league_df in cleaned_league_df_list]
+
+        # Send the summary tables to their respective directories:
+        for df, league in zip(stat_df_list, league_ids):
+            make_xl(pos_export_dir, df, file_name=f"{league}_{pos}_keystats")
+
+
+if __name__ == "__main__":
+    main()
