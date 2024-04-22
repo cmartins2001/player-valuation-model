@@ -21,10 +21,10 @@ new_cols_dict = {'Unnamed: 0': 'league', 'Unnamed: 1': 'season', 'Unnamed: 2': '
 # Global functions:
 
 
-# Function that writes the output data to an Excel file:
-def make_xl(path, df, file_name):
-    file_path = os.path.join(path, f'{file_name}.xlsx')
-    return df.to_excel(file_path, index=True)           # Remove index=True if getting permission error
+# Function that creates a CSV from a pandas df:
+def make_csv(df, dir, file_name):
+    file_path = os.path.join(dir, f'{file_name}.csv')
+    return df.to_csv(file_path, index=True)
 
 
 # Function for importing and cleaning data at the league-season level:
@@ -54,22 +54,8 @@ def main():
     # Import, clean and concatenate data:
     for league in league_ids:
 
-        #Initialize empty list:
-        league_df_list = []
-
-        print(f'\nWorking on the {league} dataframe merge...\n')
-
-        for season in season_ids:
-            # Dynamic file path:
-            file_path = os.path.join(fbref_data_dir, league, f"{league}_{season}_full_join.xlsx")
-
-            # Import and clean the data:
-            df = import_and_clean(file_path)
-            df = df.set_index('league')
-
-            # Add to list of datafrmes:
-            league_df_list.append(df)
-            print(f'\nSuccessfully added the {season} dataframe for the {league}.\n')
+        # Import the league-season-specific dataframes into a list: 
+        league_df_list = [import_and_clean(path=os.path.join(fbref_data_dir, league, f"{league}_{season}_full_join.xlsx")).set_index('league') for season in season_ids]
 
         # Concatenate the dataframes from the list:
         league_merged_df = concatenate_dfs(league_df_list)
@@ -83,7 +69,7 @@ def main():
         user_bool = int(input("Enter 1 if DF dimensions OK, 0 otherwise: "))
         if user_bool == 1:
             print(f'\nThe {league} merge was successful. Sending to Excel...\n')
-            make_xl(export_dir, league_merged_df, file_name=f'{league}_full_merge')
+            make_csv(league_merged_df, export_dir, file_name=f'{league}_full_merge')
         else:
             print(f'\nThe {league} merge was unsuccessful. Proceeding to next league...\n')
 
