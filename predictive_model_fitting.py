@@ -308,7 +308,7 @@ def main():
     pos_master_df = pos_master_df.drop(columns=['league_name', 'league', 'season', 'team', 'player_name', 'nationality'])
 
     # Import the position-level data:
-    for pos in ['DF' 'MF', 'FW']:
+    for pos in ['DF', 'MF', 'FW']:
 
         # Slice the master dataframe by position:
         pos_df = pos_master_df[pos_master_df['position'].str.contains(pos)]
@@ -322,7 +322,7 @@ def main():
         # fit_and_run_OLS(pos_df, 'log_mkt_val', f'ln(Market Value) - {pos} Only')
 
         # Report the random feature importances for each dataframe:
-        fit_and_run_RANDOMFOREST(pos_df, 'log_mkt_val', f'***RF ln(Market Value) - {pos} Only')
+        fit_and_run_RANDOMFOREST(pos_df, 'log_mkt_val', f"ln(Market Value) - {pos} Only")
     
 
 if __name__ == "__main__":
